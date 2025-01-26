@@ -57,5 +57,7 @@ async fn main() -> Result<(), sqlx::Error> {
     println!("Select: {:?} milis", elapsed);
     println!("acc: {:?}", acc);
 
+    pool.close().await;
+
     Ok(())
 }

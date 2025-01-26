@@ -24,32 +24,30 @@ fn main() -> Result<()> {
         (),
     )?;
 
-    let mut stmt = conn.prepare("INSERT INTO datum (value) VALUES (?1)")?;
     let num = 100000;
     let rand = rand::thread_rng().gen_range(1..=num);
     let now = SystemTime::now();
     for i in 0..num {
-        stmt.execute(&[&(rand + i)])?;
+        conn.execute("INSERT INTO datum (value) VALUES (?1)", &[&(rand + i)])?;
     }
     let elapsed = now.elapsed().unwrap().as_millis();
     println!("Insert: {:?} milis", elapsed);
-
-    let mut stmt = conn.prepare("SELECT id, value FROM datum WHERE id = (?1)")?;
 
     let mut acc = 0;
     let now = SystemTime::now();
     for _ in 0..100000 {
         let rand = rand::thread_rng().gen_range(1..=num);
-        let data = stmt.query_map([rand], |row| {
-            Ok(Datum {
-                id: row.get(0)?,
-                value: row.get(1)?,
-            })
-        })?;
-        for datum in data {
-            let datum = datum.unwrap();
-            acc += datum.value % 3;
-        }
+        let datum = conn.query_row(
+            "SELECT id, value FROM datum WHERE id = (?1)",
+            [rand],
+            |row| {
+                Ok(Datum {
+                    id: row.get(0)?,
+                    value: row.get(1)?,
+                })
+            },
+        )?;
+        acc += datum.value % 3;
     }
     let elapsed = now.elapsed().unwrap().as_millis();
     println!("Select: {:?} milis", elapsed);
