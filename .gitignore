@@ -1,0 +1,3 @@
+/rusqlite/target
+/sqlx/target
+**/*.sqlite
